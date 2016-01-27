@@ -19,11 +19,11 @@ import json
 import flask
 from flask import request, Response
 
-from boto import dynamodb2
-from boto.dynamodb2.table import Table
-from boto.dynamodb2.items import Item
-from boto.dynamodb2.exceptions import ConditionalCheckFailedException
-from boto import sns
+# from boto import dynamodb2
+# from boto.dynamodb2.table import Table
+# from boto.dynamodb2.items import Item
+# from boto.dynamodb2.exceptions import ConditionalCheckFailedException
+# from boto import sns
 
 # Default config vals
 THEME = 'default' if os.environ.get('THEME') is None else os.environ.get('THEME')
@@ -42,12 +42,12 @@ application.config.from_envvar('APP_CONFIG', silent=True)
 application.debug = application.config['FLASK_DEBUG'] in ['true', 'True']
 
 # Connect to DynamoDB and get ref to Table
-ddb_conn = dynamodb2.connect_to_region(application.config['AWS_REGION'])
-ddb_table = Table(table_name=application.config['STARTUP_SIGNUP_TABLE'],
-                  connection=ddb_conn)
+# ddb_conn = dynamodb2.connect_to_region(application.config['AWS_REGION'])
+# ddb_table = Table(table_name=application.config['STARTUP_SIGNUP_TABLE'],
+                  # connection=ddb_conn)
 
 # Connect to SNS
-sns_conn = sns.connect_to_region(application.config['AWS_REGION'])
+# sns_conn = sns.connect_to_region(application.config['AWS_REGION'])
 
 
 @application.route('/')
@@ -58,29 +58,29 @@ def welcome():
 
 @application.route('/signup', methods=['POST'])
 def signup():
-    signup_data = dict()
-    for item in request.form:
-        signup_data[item] = request.form[item]
+    # signup_data = dict()
+    # for item in request.form:
+        # signup_data[item] = request.form[item]
 
-    try:
-        store_in_dynamo(signup_data)
-        publish_to_sns(signup_data)
-    except ConditionalCheckFailedException:
-        return Response("", status=409, mimetype='application/json')
+    # try:
+        # store_in_dynamo(signup_data)
+        # publish_to_sns(signup_data)
+    # except ConditionalCheckFailedException:
+    #     return Response("", status=409, mimetype='application/json')
 
-    return Response(json.dumps(signup_data), status=201, mimetype='application/json')
-
-
-def store_in_dynamo(signup_data):
-    signup_item = Item(ddb_table, data=signup_data)
-    signup_item.save()
+    return Response(json.dumps("ghjghjghjgh"), status=201, mimetype='application/json')
 
 
-def publish_to_sns(signup_data):
-    try:
-        sns_conn.publish(application.config['NEW_SIGNUP_TOPIC'], json.dumps(signup_data), "New signup: %s" % signup_data['email'])
-    except Exception as ex:
-        sys.stderr.write("Error publishing subscription message to SNS: %s" % ex.message)
+# def store_in_dynamo(signup_data):
+    # signup_item = Item(ddb_table, data=signup_data)
+    # signup_item.save()
+
+
+# def publish_to_sns(signup_data):
+    # try:
+        # sns_conn.publish(application.config['NEW_SIGNUP_TOPIC'], json.dumps(signup_data), "New signup: %s" % signup_data['email'])
+    # except Exception as ex:
+        # sys.stderr.write("Error publishing subscription message to SNS: %s" % ex.message)
 
 
 if __name__ == '__main__':
